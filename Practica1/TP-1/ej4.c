@@ -23,35 +23,40 @@ char caracAleatorio(){
 }
 
 void *muestraCaracter(void *arg){
-    int i;
-    
+    //Mostramos caracter aleatorio si es distinto al anterior mostrado
     while(1){
-        printf("hilo 2\n");
-    }
-    /*for(i = 0; i < MAX_CARAC; i++){
-        //Mostramos caracter aleatorio si es distinto al anterior mostrado
         if(nuevoCarac != viejoCarac){
-            printf("%c\n",nuevoCarac);
-            viejoCarac = nuevoCarac;
-            usleep(100000);
+            
+        printf("%c\n",nuevoCarac);
+        usleep(600000);
+        viejoCarac = nuevoCarac;        
         }
-        pthread_yield();
-    }*/
+    }
     pthread_exit((void *)0);
 }
 
 void *generaCaracteres (void *arg){
+    int retval;
+    
+    //semilla aleatoria
+    srand(getpid());
+    
+    //generamos caracter aleatorio
     nuevoCarac = caracAleatorio();
-    pthread_create(&hilos[1], NULL, &muestraCaracter,NULL);
+    
+    //Creamos hilo consumidor de caracteres
+    retval = pthread_create(&hilos[1], NULL, &muestraCaracter,NULL);
+    if(retval != 0)
+        exit(1);
+            
+    //generamos caracteres aleatorios todo el tiempo
     while(1){
-        printf("hilo 1\n");
+        if(viejoCarac == nuevoCarac){
+            /*Hacemos que el random quede entre 65 y 112*/
+            nuevoCarac = ((rand() % 57) + 65);
+        }
     }
-    /*int i;
-    for(i = 0; i < MAX_CARAC; i++){
-        nuevoCarac = saracAleatorio();
-        pthread_yield();
-        usleep(100000);
-    }*/
+    
     pthread_exit((void *)0);
 }
 
