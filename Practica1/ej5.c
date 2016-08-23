@@ -11,6 +11,7 @@
 
 
 
+
 /*Arreglo de hilos*/
 pthread_t hilos[MAX_HILOS];
 
@@ -31,6 +32,9 @@ void *muestraCaracter(void *arreglo){
     
     while(1){
         
+        
+        //Muestra los caracteres generados por el hilo productor
+        
         for (i = 0; i < indice_global; i++){
             carac_a_mostrar = * (char *)(arreglo + i);
             printf("%c\n", carac_a_mostrar);
@@ -39,13 +43,15 @@ void *muestraCaracter(void *arreglo){
         printf("Hilo 2. Mostró %d caracteres\n", i);
         usleep(ESPERA);
         
-        if(indice_global > MAX_CARAC)
+        //Levantamos la bandera y se queda esperando a que se cambie el hilo
+        bandera_hilo = 1;
+        
+        
+        //Si ya se llego al tope, se termina el hilo
+        if(indice_global >= MAX_CARAC)
             pthread_exit((void *) 0);
         
-        
-        bandera_hilo = 1;        
         while(bandera_hilo);
-        
     }
 }
 
@@ -63,7 +69,7 @@ void *generaCaracteres (void *arg){
     
     
     //Creamos hilo consumidor de caracteres
-    retval = pthread_create(&hilos[1], NULL, &muestraCaracter, (void *)arregloCarac);
+    retval = pthread_create(&hilos[1], NULL, muestraCaracter, (void *)arregloCarac);
     if(retval != 0)
         exit(1);
             
@@ -72,22 +78,22 @@ void *generaCaracteres (void *arg){
         
         indice_global++;
         
+        if(indice_global > MAX_CARAC)
+            pthread_exit((void *) 0);
+        
         for(i = 0; i < indice_global; i++){
             arregloCarac[i] = caracAleatorio();
         }
         
-        if(indice_global > MAX_CARAC)
-            pthread_exit((void *) 0);
-    
         bandera_hilo = 0;
-        while(!bandera_hilo); 
-        
+                
+        while(!bandera_hilo);      
     }
     
 }
 
 int main(void){
-    int retval = pthread_create(&hilos[0], NULL, &generaCaracteres, NULL);
+    int retval = pthread_create(&hilos[0], NULL, generaCaracteres, NULL);
     if(retval != 0)
         exit(1);
     
