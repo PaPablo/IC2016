@@ -6,9 +6,9 @@
 #include<pthread.h>
 
 
-#define MAX_CARAC 100
+#define MAX_CARAC 10
 #define MAX_HILOS 2
-#define ESPERA 50000
+#define ESPERA 250000
 
 
 /*BUCLE INFINITO. SE PREGUNTA SI EL CONTADOR LLEGO AL TOPE.
@@ -56,7 +56,8 @@ void *generaCaracteres (void *arg){
     int retval;
     
     //semilla aleatoria
-    srand(getpid());
+    //srand(getpid());
+    srand(1);
     
     //generamos caracter aleatorio
     nuevoCarac = caracAleatorio();

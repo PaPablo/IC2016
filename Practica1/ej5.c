@@ -15,9 +15,12 @@
 /*Arreglo de hilos*/
 pthread_t hilos[MAX_HILOS];
 
-int bandera_hilo = 0;
+_Bool bandera_hilo = 0;
 
 int indice_global = 0;
+
+
+
 
 
 char caracAleatorio(void){
