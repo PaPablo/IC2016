@@ -3,7 +3,7 @@
 #include<unistd.h>
 #include<stdlib.h>
 
-#define MAX_PILA  1000
+#define MAX_PILA  1000000
 #define MAX_HILOS 10
 #define ESPERA    50000
 
@@ -22,12 +22,14 @@ pila_t pila  = {-1, PTHREAD_COND_INITIALIZER, PTHREAD_COND_INITIALIZER, PTHREAD_
 int numeroAleatorio(){
     return rand() % 10;
 }
+
+
 void *push (void *arg){
     while(1){
         pthread_mutex_lock(&pila.mutex);
         if(pila.tope == (MAX_PILA-1)){
-            pthread_cond_wait(&pila.llena,&pila.mutex);
             printf("PILA_LLENA: Espero condicion\n");
+            pthread_cond_wait(&pila.llena,&pila.mutex);
         }
         //el tope apunta al elemento visible de la pila
         pila.contenido[++pila.tope] = numeroAleatorio();
@@ -44,8 +46,8 @@ void *pop (void *arg){
     while(1){
         pthread_mutex_lock(&pila.mutex);
         if(pila.tope == -1){
-            pthread_cond_wait(&pila.vacia,&pila.mutex);
             printf("PILA_VACIA: Espero condicion\n");
+            pthread_cond_wait(&pila.vacia,&pila.mutex);
         }
         //el tope apunta al elemento visible de la pila
         printf("%d\n", pila.contenido[pila.tope]);
@@ -76,7 +78,6 @@ int main(void){
             exit(1);
     }
     
-    sleep(1);
     
     //hilos popeadores
     for(i = 0; i < MAX_HILOS ; i++){
