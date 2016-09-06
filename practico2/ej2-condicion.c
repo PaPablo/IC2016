@@ -13,15 +13,21 @@ pthread_cond_t cond= PTHREAD_COND_INITIALIZER;
 
 void *esperoCondicion(void *arg){
     int i = (int)arg;
-    pthread_cond_wait(&cond,&mutex);
-    printf("Me desperté, hilo %d\n", i);
-    pthread_mutex_unlock(&mutex);
+    pthread_mutex_lock(&mutex);
     
+    //espera la condicion
+    pthread_cond_wait(&cond,&mutex);
+    
+    
+    printf("Me desperté, hilo %d\n", i);
+    
+    pthread_mutex_unlock(&mutex);
+    pthread_exit((void *)0);
 }
 
 
 int main(void){
-    pthread_mutex_lock(&mutex);
+    
     int i; 
     for(i = 0; i < MAX; i++){
         //creamos hilos
@@ -30,8 +36,10 @@ int main(void){
             exit(1);     
     }
     
-    pthread_cond_signal(&cond);
- 
+    sleep(1);
+    
+    
+    pthread_cond_broadcast(&cond);
     
     for(i = 0; i < MAX; i++){
         //joineamos todos los hilos
