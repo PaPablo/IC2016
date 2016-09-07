@@ -30,15 +30,15 @@ void push(pila_t *pila, int elemento){
 
     if(pila->tope == (MAX_PILA-1)){
         printf("PILA_LLENA: Espero condicion\n");
-        pthread_cond_wait(&pila->llena,&pila->mutex);
+        pthread_cond_wait(&(pila->llena),&(pila->mutex));
     }
     //el tope apunta al elemento visible de la pila
     pila->tope += 1;
     pila->contenido[pila->tope] = elemento;
 
-    pthread_cond_signal(&pila->vacia);
+    pthread_cond_signal(&(pila->vacia));
 
-    pthread_mutex_unlock(&pila->mutex);
+    pthread_mutex_unlock(&(pila->mutex));
 }
 
 int pop(pila_t *pila){
@@ -46,7 +46,7 @@ int pop(pila_t *pila){
 
     if(pila->tope == -1){
         printf("PILA_VACIA: Espero condicion\n");
-        pthread_cond_wait(&pila->vacia,&pila->mutex);
+        pthread_cond_wait(&(pila->vacia),&(pila->mutex));
     }
     //el tope apunta al elemento visible de la pila
     int valor = pila->contenido[pila->tope];
