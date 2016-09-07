@@ -64,26 +64,22 @@ int numeroAleatorio(){
     return rand() % 10;
 }
 
+//funcion hilosPusheadores
 void *hiloPush (void *arg){
     pila_t *p = (pila_t *)arg;
-    int corte = 0;
     while(1){
         push(p, numeroAleatorio());
-        corte++;
     }
 
     pthread_exit((void *)0);
 }
 
+//funcion hilos popeadores
 void *hiloPop (void *arg){
     pila_t *p = (pila_t *)arg;
-    int corte = 0;
     while(1){
         printf("%d\n",pop(p));
-        corte++;
     }
-    //pop desde la pila
-    //si se vacia, espera condicion
     
     pthread_exit((void *)0);
 }
@@ -113,8 +109,15 @@ int main(void){
     }
     
     
-    //esperamos al primer hilo creado
-    pthread_join(hilosPush[0], NULL);
+      //hilos popeadores
+    for(i = 0; i <  MAX_HILOS ; i++){
+        pthread_join(hilosPop[i],NULL);
+    }
+    
+    //hilos pusheadores
+    for(i = 0; i < MAX_HILOS ; i++){
+        pthread_join(hilosPush[i],NULL);
+    }
 
     return 0;
 }
