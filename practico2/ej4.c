@@ -4,13 +4,16 @@
 #include<unistd.h>
 #include<stdlib.h>
 
-#define MAX_COLA  100
-#define MAX_HILOS 10
-#define MAX_ITERACIONES	10000
-#define ESPERA    50000
+#define MAX_COLA  			100
+#define MAX_HILOS 			10
+#define CORTE_ITERACIONES	10
+
+#define ESPERA    			50000
+
 
 pthread_t hilosEncolar[MAX_HILOS];
 pthread_t hilosDesencolar[MAX_HILOS];
+
 
 typedef struct {
     int final;
@@ -19,9 +22,14 @@ typedef struct {
     int contenido[MAX_COLA];
 } cola_t;
 
+
+
 int numeroAleatorio(){
     return rand() % 10;
 }
+
+
+
 
 void crearCola(cola_t *cola){
 	cola->final = -1;
@@ -76,7 +84,7 @@ void *funcionHiloDesencola(void *cola){
 	cola_t *q = (cola_t *)cola;
 	int frente,
 		corte = 0;
-	while(corte < MAX_ITERACIONES){
+	while(corte < CORTE_ITERACIONES){
 		desencolar(q, &frente);
 		printf("%d\n", frente);
 		usleep(ESPERA);
@@ -91,7 +99,7 @@ void *funcionHiloDesencola(void *cola){
 void *funcionHiloEncola(void *cola){
 	cola_t *q = (cola_t*)cola;
 	int corte = 0;
-	while(corte < MAX_ITERACIONES){
+	while(corte < CORTE_ITERACIONES){
 		encolar(q, numeroAleatorio());
 		corte++;
 	}
@@ -102,39 +110,36 @@ void *funcionHiloEncola(void *cola){
 
 int main(void){
     
-    int i,
-        retval;
-        
     cola_t q;
+    
+    int i,
+        retval;    
+    
     crearCola(&q);
     srand(getpid());
     
-    
-    /*
-    for(i = 0; i < 11; i++){
-		retval = numeroAleatorio();
-		printf("voy a encolar un %d. Iteracion numero %d\n", retval, i);
-		encolar(&q, retval);
-	}*/
-   
-    
-    
+    //hilos encoladores
     for(i = 0; i < MAX_HILOS; i++){
         retval = pthread_create(&hilosEncolar[i], NULL, &funcionHiloEncola, (void *)&q);
         if(retval != 0)
             exit(1);
     }
     
+    //hilos desencoladores
     for(i = 0; i < MAX_HILOS; i++){
         retval = pthread_create(&hilosDesencolar[i], NULL, &funcionHiloDesencola, (void *)&q);
         if(retval != 0)
             exit(1);
     }
     
-    
-    //esperamos hilos
+    //esperamos hilos encoladores
     for(i = 0; i < MAX_HILOS; i++){
         pthread_join(hilosEncolar[i], NULL);
+    }
+
+
+    //esperamos hilos desencoladores
+    for(i = 0; i < MAX_HILOS; i++){
         pthread_join(hilosDesencolar[i], NULL);
     }
     
