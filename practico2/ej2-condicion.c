@@ -4,7 +4,7 @@
 #include<pthread.h>
 
 #define MAX 10
-#define ESPERA 500
+#define ESPERA 50000
 
 pthread_t hilos[MAX];
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -12,7 +12,7 @@ pthread_cond_t cond= PTHREAD_COND_INITIALIZER;
 
 
 void *esperoCondicion(void *arg){
-    int i = (int)arg;
+    int i = *(int *)arg;
     pthread_mutex_lock(&mutex);
     
     //espera la condicion
@@ -31,12 +31,11 @@ int main(void){
     int i; 
     for(i = 0; i < MAX; i++){
         //creamos hilos
-        int retval = pthread_create(&hilos[i], NULL, &esperoCondicion,(void *)i);
+        int retval = pthread_create(&hilos[i], NULL, &esperoCondicion,(void *)&i);
         if(retval != 0)
-            exit(1);     
+            exit(1);
+        usleep(50000);
     }
-    
-    sleep(1);
     
     
     pthread_cond_broadcast(&cond);
