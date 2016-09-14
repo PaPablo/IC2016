@@ -10,7 +10,6 @@
 typedef struct 
 {
 	unsigned char 	valor;
-	//unsigned int 	tomado: 2;
 	pthread_mutex_t mutex;
 	pthread_cond_t 	esperoPar;
 } numero_t;

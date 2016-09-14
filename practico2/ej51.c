@@ -3,17 +3,8 @@
 #include<unistd.h>
 #include<stdlib.h>
 
-#define MAX_HILOS	30
+#define MAX_HILOS	20
 #define ESPERA 		500000
-#define RANGO_VALORES 10
-
-
-
-/***************************************************************************
-/* Así como está ahora funciona todo bien,
-/* el tema es que como no reinicializamos la bandera de tomado
-/* no estaríamos liberando el número, que es lo que nos pide el ejericicio.
-***************************************************************************/
 
 
 
@@ -21,9 +12,9 @@ typedef struct
 {
 	unsigned char 	valor;
 	unsigned char 	tomado;
-    //0 = valor libre
-    //1 = valor asignado a un solo hilo
-    //2 = valor asignado a dos hilos
+    /*0 = valor libre
+      1 = valor asignado a un solo hilo
+    2 = valor asignado a dos hilos*/
 	pthread_mutex_t mutex;
 	pthread_cond_t 	esperoPar;
 } numero_t;
@@ -53,8 +44,6 @@ void *buscoHiloPar(void *args){
 	int numeroHilo = *(int *)args;
     
     int posicion = numeroAleatorio(MAX_HILOS/2);
-    
-    //int posicion = 0;
 
     //Buscamos un elemento del arreglo cuyo valor no esté ocupado
     while(arreglo[posicion].tomado >= 2){
@@ -82,8 +71,6 @@ void *buscoHiloPar(void *args){
 
 	printf("El número %d está libre (Hilo %d)\n", arreglo[posicion].valor, numeroHilo);
     
-    //Reinicializamos la bandera que indica que el valor está disponible
-    //arreglo[posicion].tomado = 0;
     
 	pthread_exit((void *) 0);
 }
