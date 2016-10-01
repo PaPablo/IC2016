@@ -1,0 +1,13 @@
+/*para el punto 1 tenemos que
+los double ocupan 8 bytes
+son 3 las matrices, entonces tenemos 3 y 8 como constantes
+
+para calcular la memoria que consume la multiplicacion de matrices
+va a ser
+
+	x^2 = (N^2)/(3*8)
+
+donde N es el orden de la matriz
+
+
+*/
