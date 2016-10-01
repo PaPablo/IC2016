@@ -1,0 +1,57 @@
+Matriz Completa sin paralelizar 1000x1000
+
+Comienzo ...
+Multiplicando ...
+Fin Multiplicación (Resultado correcto)
+Fin del programa
+
+real	0m7.806s
+user	0m7.792s
+sys	0m0.004s
+Comienzo ...
+Multiplicando ...
+Fin Multiplicación (Resultado correcto)
+Fin del programa
+
+real	0m7.736s
+user	0m7.724s
+sys	0m0.008s
+Comienzo ...
+Multiplicando ...
+Fin Multiplicación (Resultado correcto)
+Fin del programa
+
+real	0m7.736s
+user	0m7.732s
+sys	0m0.000s
+
+En promedio tardaría 7.7593 segundos
+
+Matriz Completa paralelizada
+
+Comienzo ...
+Multiplicando ...
+Fin Multiplicación (Resultado correcto)
+Fin del programa
+
+real	0m3.930s
+user	0m7.756s
+sys	0m0.000s
+Comienzo ...
+Multiplicando ...
+Fin Multiplicación (Resultado correcto)
+Fin del programa
+
+real	0m3.927s
+user	0m7.684s
+sys	0m0.000s
+Comienzo ...
+Multiplicando ...
+Fin Multiplicación (Resultado correcto)
+Fin del programa
+
+real	0m3.933s
+user	0m7.744s
+sys	0m0.000s
+
+En promedio tardaría 3.93 segundos
