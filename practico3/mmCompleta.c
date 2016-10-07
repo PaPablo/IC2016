@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 
-#define N 1000
+#define N 2000
 
 double a[N][N];
 double b[N][N];

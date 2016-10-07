@@ -3,9 +3,10 @@
 #include <stdio.h>
 
 int main(void){
-    int ID = omp_get_thread_num();
-    #pragma omp parallel num_threads(4)
+    
+    #pragma omp parallel 
     {
+        int ID = omp_get_thread_num();
         printf("Hilo:%d\n", ID);
     }
 }

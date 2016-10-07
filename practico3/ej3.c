@@ -1,7 +1,15 @@
 
-#include <stdio.h>
+/* Introducción a la Concurrencia 2016
+ *
+ * Ejemplo de multiplicación de matrices.
+ * Programa secuencial.
+ *
+ */
 
-#define N 1000
+#include <stdio.h>
+#include <omp.h>
+
+#define N 2000
 
 double a[N][N];
 double b[N][N];
@@ -9,10 +17,8 @@ double c[N][N];
 
 void iniMat(double mat[][N], int len, double iniVal)
 {
-	int i, j;
-
-	for(i = 0; i < len; ++i)
-		for(j = 0; j < len; ++j)
+	for(int i = 0; i < len; ++i)
+		for(int j = 0; j < len; ++j)
 			mat[i][j] = iniVal;
 }
 
@@ -34,7 +40,6 @@ int Check1Mat(double mat[][N], int len, double finVal)
 				return 1;
 	return 0;
 }
-
 void printMat(double mat[][N], int len)
 {
 	int i, j;
@@ -47,14 +52,20 @@ void printMat(double mat[][N], int len)
 	}
 }
 
-void mm(void)
-{
-	int i, j, k;
+void mm(void){        
+    
+    #pragma omp parallel for
+    //maneja las filas
+    for(int i = 0; i < N; ++i){
+        //maneja las columnas
+        for(int j = 0; j < N; ++j){
+            //calcular una celda de la resultante
+            for(int k = 0; k < N; ++k){
+                c[i][j] += a[i][k] * b[k][j];   
+            }
+        }             
+    }
 
-	for(i = 0; i < N; ++i)
-		for(j = 0; j < N; ++j)
-			for(k = 0; k < N; ++k)
-				c[i][j] += a[i][k] * b[k][j];
 }
 
 int main(void)
@@ -72,15 +83,6 @@ int main(void)
 		printf("Fin Multiplicación (Resultado correcto)\n");
 	else
 		printf("Fin Multiplicación (Resultado INCORRECTO!)\n");
-
-/*
-	printf("Matriz a:\n");
-	printMat(a, N);
-	printf("Matriz b:\n");
-	printMat(b, N);
-	printf("Matriz c:\n");
-	printMat(c, N);
-*/
 
 	printf("Fin del programa\n");
 }

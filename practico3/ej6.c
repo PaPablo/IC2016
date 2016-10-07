@@ -1,6 +1,8 @@
 
 #include <stdio.h>
+#include <omp.h>
 #include <unistd.h>
+
 #define MAX 1000
 
 
@@ -12,12 +14,13 @@ void iniArreglo(int *a){
 }
 
 int sumatoria(int *a){
-    int valor = 0;
+    int valor;
     int i;
     
+    #pragma omp parallel for reduction(+:valor)
     for(i = 0; i < MAX; i++){
         valor += a[i];
-        usleep(10);
+        usleep(10);  
         /*agregamos espera para que se note la diferencia
         entre la ejecución paralela y secuencial*/
     }
