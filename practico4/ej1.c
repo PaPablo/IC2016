@@ -6,22 +6,21 @@ _Bool esPar(int val){
 }
 int main(int argc, char const *argv[])
 {
-    int size, rank;
+    int size, rank, rankRecv;
     MPI_Init(NULL, NULL);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    int x;
     
     if (esPar(rank)) 
     {
         
-        printf("RANK %d: Envio %d\n", rank, x);
-        MPI_Send(&x, 1, MPI_INT, rank+1, 0, MPI_COMM_WORLD);
-    } else {
+        printf("RANK %d: Envío %d\n", rank, rank);
+        MPI_Send(&rank, 1, MPI_INT, rank+1, 0, MPI_COMM_WORLD);
+    } else {        
         MPI_Status status;
-        MPI_Recv(&x, 1, MPI_INT, rank-1, 0, MPI_COMM_WORLD, &status);
-        printf("RANK %d: Recibi %d\n", rank, x);
-        //printf("Msg: %d Source: %d Tag: %d\n", x, status.MPI_SOURCE, status.MPI_TAG);
+        MPI_Recv(&rankRecv, 1, MPI_INT, rank-1, 0, MPI_COMM_WORLD, &status);
+        printf("RANK %d: Recibí del proceso RANK %d\n", rank, rankRecv);
+        printf("Msg: %d Source: %d Tag: %d\n", rankRecv, status.MPI_SOURCE, status.MPI_TAG);
 
     }
     
