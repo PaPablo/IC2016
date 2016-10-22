@@ -20,11 +20,11 @@ int main(int argc, char const *argv[])
         MPI_Status status;
         MPI_Recv(&rankRecv, 1, MPI_INT, rank-1, 0, MPI_COMM_WORLD, &status);
         printf("RANK %d: Recibí del proceso RANK %d\n", rank, rankRecv);
-        printf("Msg: %d Source: %d Tag: %d\n", rankRecv, status.MPI_SOURCE, status.MPI_TAG);
+        //printf("Msg: %d Source: %d Tag: %d\n", rankRecv, status.MPI_SOURCE, status.MPI_TAG);
 
     }
     
-    
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     return 0;
 }

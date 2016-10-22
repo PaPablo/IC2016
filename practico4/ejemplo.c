@@ -24,6 +24,9 @@ int main(int argc, char** argv) {
     MPI_Bcast(&buf, 1, MPI_INT, root, MPI_COMM_WORLD);
     usleep(5000);
 
+    if(rank == root) {
+       buf = 0;
+    }
     printf("\n[%d]: After Bcast, buf is %d\n", rank, buf);
 
     MPI_Finalize();
