@@ -113,6 +113,10 @@ int main(){
     if(rank == 0){
         int dot_result = sumatoria(dot_product, size);
         printf("Resultado final = %d\n", dot_result);
+        
+        printf("\nProbamos de forma secuencial\n");
+        int dot_sec = dot(vectors, vectors_size);
+        printf("Resultado final (SECUENCIAL) = %d\n", dot_sec);
     }
     
     MPI_Barrier(MPI_COMM_WORLD);

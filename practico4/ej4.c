@@ -69,7 +69,11 @@ int main(){
     
     if(rank==0){      
         float PI = sumatoria(areas, size);
-        printf("PI = %.5f\n", PI);
+        printf("PI = %.3f\n", PI);
+        
+        printf("Probamos de forma secuencial\n");
+        PI = calcIntegralPI(deltaX, NUM_STEPS, 1);
+        printf("PI (SECUENCIAL) = %.3f\n", PI);
     }
     
     
