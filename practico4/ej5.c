@@ -30,7 +30,7 @@ void init_vector(Dupla *dupla, int dim){
         dupla[i].v = rand()%10;
         printf("%d, ", dupla[i].v);
     }
-    printf(")\n");
+    printf(")\n\n");
 }
 
 int sumatoria(int *array, int tope){
@@ -62,8 +62,8 @@ int main(){
     
     int size;
     MPI_Comm_size(MPI_COMM_WORLD, &size);
-    if(size < 2){
-        printf("Ingrese valor de procesos mayor a 2\n");
+    if(size < 1){
+        printf("Ingrese valor de procesos mayor a 1\n");
         exit(1);
     }
         
@@ -83,32 +83,30 @@ int main(){
     
     if(rank == 0){
         init_vector(vectors, vectors_size);
+        /*
         for(int i = 0; i < vectors_size; i++){
             printf("u%d = %d\nv%d = %d\n\n", i, vectors[i].u, i, vectors[i].v);
         }
-        printf("FIN INICIALIZACIÓN\n\n");
+        printf("FIN INICIALIZACIÓN\n\n");*/
     }
     
     
     int sub_vector_size = vectors_size / size;
+
     
     Dupla sub_vec[sub_vector_size];
+
     
     
-    MPI_Scatter(vectors, sub_vector_size +2, MPI_INT, 
-                sub_vec, sub_vector_size+2, MPI_INT, 
+    MPI_Scatter(vectors, sub_vector_size * 2, MPI_INT, 
+                sub_vec, sub_vector_size * 2, MPI_INT, 
                 0, MPI_COMM_WORLD);
     
-    printf("valores del subarreglo del RANK %d\n", rank);
-    for(int i = 0; i<sub_vector_size; i++){
-        printf("u%d = %d, v%d = %d\n", i, sub_vec[i].u, i, sub_vec[i].v);
-    }
-    
-    printf("entramos al dot...\n\n");
     
     int sub_dot = dot(sub_vec, sub_vector_size);
     
     int dot_product[size];
+    
     
     MPI_Gather(&sub_dot, 1, MPI_INT, dot_product, 1, MPI_INT, 0, MPI_COMM_WORLD);
     
@@ -116,7 +114,6 @@ int main(){
         int dot_result = sumatoria(dot_product, size);
         printf("Resultado final = %d\n", dot_result);
     }
-    
     
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();

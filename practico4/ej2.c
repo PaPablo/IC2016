@@ -5,7 +5,6 @@
 
 int main(){
     int size, rank;
-    //int msj;
     srand(getpid());
     
     MPI_Init(NULL, NULL);

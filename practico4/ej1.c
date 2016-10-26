@@ -14,13 +14,12 @@ int main(int argc, char const *argv[])
     if (esPar(rank)) 
     {
         
-        printf("RANK %d: Envío %d\n", rank, rank);
+        printf("RANK %d: Envío %d al RANK %d\n", rank, rank, rank+1);
         MPI_Send(&rank, 1, MPI_INT, rank+1, 0, MPI_COMM_WORLD);
     } else {        
         MPI_Status status;
         MPI_Recv(&rankRecv, 1, MPI_INT, rank-1, 0, MPI_COMM_WORLD, &status);
-        printf("RANK %d: Recibí del proceso RANK %d\n", rank, rankRecv);
-        //printf("Msg: %d Source: %d Tag: %d\n", rankRecv, status.MPI_SOURCE, status.MPI_TAG);
+        printf("RANK %d: Recibí %d del proceso RANK %d\n", rank, rankRecv, rankRecv);
 
     }
     
