@@ -3,8 +3,6 @@
 #include<stdlib.h>
 #include<unistd.h>
 
-#define MAX_PROCESOS 100
-
 int main(){
     int size, rank;
     //int msj;
@@ -21,9 +19,9 @@ int main(){
         
         printf("Soy el RANK %d, envío\n", rank);
         
-        for(int i = rank+1; i < MAX_PROCESOS; i++){
+        for(int i = rank+1; i < size; i++){
             envio = rand() % 100;
-            MPI_Send(&envio, 1, MPI_INT, i, rand()%100, MPI_COMM_WORLD);
+            MPI_Send(&envio, 1, MPI_INT, i, (rand()%100)+3, MPI_COMM_WORLD);
             //enviamos un mensaje con un valor y etiqueta aleatoria
         }
     }

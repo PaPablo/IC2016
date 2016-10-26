@@ -3,11 +3,10 @@
 #include<stdlib.h>
 #include<unistd.h>
 
-#define MAX_PROCESOS 3
 #define TAG_EXIT 0
 
 /*Hay un problema con el Probe. Si se hace el Probe del mensaje pero no se recibe,
-se queda haciendo el Probe con ese mensaje y no recibe los nuevos (no termina nunca)
+se queda haciendo el Probe con ese mensaje y no recibe los nuevos (no desencola el mensaje)
 Habría que ver una forma para que pueda descartar ese mensaje que no le sirve*/ 
 
 _Bool esPar(int val){
@@ -15,7 +14,8 @@ _Bool esPar(int val){
 }
 
 int main(){
-    int size, rank, flag, mensaje;
+    int size, rank;
+    int mensaje;
     MPI_Status status;
     
     srand(getpid());
@@ -26,7 +26,7 @@ int main(){
     if(rank == 0){
         
         int envio, i;
-        int msj = rand()%100;
+        int msj = (rand()%100)+1;
         
         printf("Soy el RANK %d, voy a enviar %d mensajes\n", rank, msj);
 
@@ -97,6 +97,7 @@ int main(){
         }
     }
     
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     return 0;
 }

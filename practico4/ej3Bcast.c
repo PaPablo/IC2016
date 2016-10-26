@@ -39,7 +39,7 @@ int main(){
             (utilizamos una etiqueta aleatoria). Cada proceso la recibe y muestra un mensaje si le toco una etiqueta
             correspondiente a el (el RANK 1 muestra pares, RANK 2 impares)*/
         }
-            
+
         salida = 1;
         MPI_Bcast(&salida, 1, MPI_INT, 0, MPI_COMM_WORLD);
         //Hacemos un Broadcast
@@ -56,7 +56,7 @@ int main(){
             
             
             //hacemos broadcast para recibir
-            MPI_Bcast(&salida, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Bcast(&salida, 1, MPI_INT, MPI_ANY_SOURCE, MPI_COMM_WORLD);
             if(salida){
                 printf("RANK %d: Recibi %d. Me fui\n\n", rank, salida);
                 break;
