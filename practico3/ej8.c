@@ -16,6 +16,7 @@ int main(){
     for(i=0; i < num_steps; i++){
         x = (i + incremento)*step;
         sum += 4.0/(1.0+(x*x));
+        /*
         if(i==0){
             printf("%.10f\n", x);
             sleep(2);
@@ -23,7 +24,7 @@ int main(){
         if(i==1){
             printf("%.10f\n", x);
             sleep(2);
-        }
+        }*/
         
         usleep(1);
     }
