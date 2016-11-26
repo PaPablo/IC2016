@@ -1,9 +1,9 @@
 #include <stdio.h>
 #define n 10
 
-void ini_mtx(int matrix[n][n]){
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < n; j++){
+void ini_mtx(int x, int matrix[x][x]){
+    for(int i = 0; i < x; i++){
+        for(int j = 0; j < x; j++){
             matrix[i][j] = i+j;
         }
     }
@@ -34,7 +34,7 @@ int main(int argc, char const *argv[])
 {
     int matrix[n][n];
 
-    ini_mtx(matrix);
+    ini_mtx(n, matrix);
 
     print_matrix(matrix);
     printf("\n\nnow we print a row\n");
