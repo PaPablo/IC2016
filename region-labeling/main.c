@@ -42,9 +42,9 @@ int isLit(int val){
     return val;
 }
 
-void print_matrix(int size, int matrix[size][size]){
-    for(int i = 0; i < size; i++){
-        for(int j = 0; j < size; j++){
+void print_matrix(int nrows, int ncols, int matrix[nrows][ncols]){
+    for(int i = 0; i < nrows; i++){
+        for(int j = 0; j < ncols; j++){
             printf("%d ", matrix[i][j]);
         }
         printf("\n");
@@ -102,194 +102,187 @@ void coordinate(int *cont, int size, int rank){
     }
 
     if(acum == 0){
-        cont = 0;
+        *cont = 0;
         MPI_Bcast(&cont, 1, MPI_INT, rank, MPI_COMM_WORLD);
     }
 }
 
 int max_corner(int x, int y){
-    if(x > y)
+    if(x > y){
         return x;
-    else
-        return y;
+    }
+    return y;
 }
 
 int max_edge(int x, int y, int z){
     if(x > y){
         if(x > z){
             return x;
-        } else{
-            return max_corner(y, z);
         }
     }
+
+    return max_corner(y, z);
 }
+
 
 int max_inside(int x, int y, int z, int w){
     if(x > y){
         if(x > z){
             if(x > w){
                 return x;
-            }else{
-                return max_edge(y, z, w);
             }
         }
     }
-}
+
+    return max_edge(y, z, w);
+}   
 
 void update_upper_strip(int nrows, int ncols, int label[nrows][ncols], int lower_bound[ncols], int *change){
+    int aux;
     for(int i = 0; i < nrows; i++){
         for(int j = 0; j < ncols; j++){
+            aux = label[i][j];
             if(i == 0){
             //upper row (topest row of label matrix)
                 if(j == 0){
                     //upper left corner
                     label[i][j] = max_corner(label[i+1][j], label[i][j+1]);
-                    *change = 1;
                 }else if(j == ncols){
                     //upper right corner
                     label[i][j] = max_corner(label[i+1][j], label[i][j-1]);
-                    *change = 1;
+                    
                 }else{
                     //upper row, not corner
                     label[i][j] = max_edge(label[i][j-1], label[i+1][j], label[i][j+1]);
-                    *change = 1;
                 }
             }else if(i == nrows){
             //lower row
                 if(j == 0){
                     //lower left corner
                     label[i][j] = max_edge(label[i-1][j], label[i][j+1], lower_bound[j]);
-                    *change = 1;
                 }else if(j == ncols){
                     //lower right corner
                     label[i][j] = max_edge(label[i-1][j], label[i][j-1], lower_bound[j]);
-                    *change = 1;
                 }else{
                     //lower row, not corner
                     label[i][j] = max_inside(label[i][j-1], label[i+1][j], label[i][j+1], lower_bound[j]);
-                    *change = 1;
                 }
             }else{
             //inside row
                 if(j == 0){
                     //left edge
                     label[i][j] = max_edge(label[i-1][j], label[i][j+1], label[i-1][j]);
-                    *change = 1;
                 }else if (j == ncols){
                     //right edge
                     label[i][j] = max_edge(label[i-1][j], label[i][j-1], label[i-1][j]);
-                    *change = 1;
                 }else{
                     //inside node
                     label[i][j] = max_inside(label[i-1][j], label[i][j+1], label[i+1][j], label[i][j-1]);
-                    *change = 1;
                 }
+            }
+
+            if(aux != label[i][j]){
+                *change = 1;
             }
         }
     }
 }
 
 void update_lower_strip(int nrows, int ncols, int label[nrows][ncols], int upper_bound[ncols], int *change){
+    int aux;
     for(int i = 0; i < nrows; i++){
         for(int j = 0; j < ncols; j++){
+            aux = label[i][j];
             if(i == 0){
             //upper row
                 if(j == 0){
                     //upper left corner
                     label[i][j] = max_edge(upper_bound[j], label[i][j+1], label[i+1][j]);
-                    *change = 1;
                 }else if(j == ncols){
                     //upper right corner
                     label[i][j] = max_edge(upper_bound[j], label[i][j-1], label[i+1][j]);
-                    *change = 1;
                 }else{
                     //upper row, not corner
                     label[i][j] = max_inside(upper_bound[j], label[i][j+1], label[i+1][j], label[i][j-1]);
-                    *change = 1;
                 }
             }else if (i == nrows){
             //lower row (deepest row of label matrix)
                 if(j == 0){
                     //lower left corner
                     label[i][j] = max_corner(label[i-1][j], label[i][j+1]);
-                    *change = 1;
                 }else if (j == ncols){
                     //lower right corner
                     label[i][j] = max_corner(label[i-1][j], label[i][j-1]);
-                    *change = 1;
                 }else{
                     //lower row, not corner
                     label[i][j] = max_edge(label[i][j-1], label[i-1][j], label[i][j+1]);
-                    *change = 1;
                 }
             }else{
             //inside row
                 if(j == 0){
                     //left edge
                     label[i][j] = max_edge(label[i-1][j], label[i][j+1], label[i+1][j]);
-                    *change = 1;
                 }else if (j == ncols){
                     //right edge
                     label[i][j] = max_edge(label[i-1][j], label[i][j-1], label[i+1][j]);
-                    *change = 1;
                 }else{
                     //inside node
                     label[i][j] = max_inside(label[i-1][j], label[i][j+1], label[i+1][j], label[i][j-1]);
-                    *change = 1;
                 }
+            }
+
+            if(aux != label[i][j]){
+                *change = 1;
             }
         }
     }
 }
 
 void update_inside_strip(int nrows, int ncols, int label[nrows][ncols], int upper_bound[ncols], int lower_bound[ncols], int *change){
+    int aux;
     for(int i = 0; i < nrows; i++){
         for(int j = 0; j < ncols; j++){
+            aux = label[i][j];
             if(i == 0){
             //upper row
                 if(j == 0){
                     //upper left corner
                     label[i][j] = max_edge(upper_bound[j], label[i][j+1], label[i+1][j]);
-                    *change = 1;
                 }else if(j == ncols){
                     //upper right corner
                     label[i][j] = max_edge(upper_bound[j], label[i][j-1], label[i+1][j]);
-                    *change = 1;
                 }else{
                     //upper row, not corner
                     label[i][j] = max_inside(upper_bound[j], label[i][j+1], label[i+1][j], label[i][j-1]);
-                    *change = 1;
                 }
             }else if(i == nrows){
             //lower row
                 if(j == 0){
                     //lower left corner
                     label[i][j] = max_edge(label[i-1][j], label[i][j+1], lower_bound[j]);
-                    *change = 1;
                 }else if (j == ncols){
                     //lower right corner
                     label[i][j] = max_edge(label[i-1][j], label[i][j-1], lower_bound[j]);
-                    *change = 1;
                 }else{
                     //lower row, not corner
                     label[i][j] = max_inside(label[i-1][j], label[i][j+1], lower_bound[j], label[i][j-1]);
-                    *change = 1;
                 }
             }else{
             //inside row
                 if(j == 0){
                     //left edge
                     label[i][j] = max_edge(label[i-1][j], label[i][j+1], label[i+1][j]);
-                    *change = 1;
                 }else if(j == ncols){
                     //right edge
                     label[i][j] = max_edge(label[i-1][j], label[i][j-1], label[i+1][j]);
-                    *change = 1;
                 }else{
                     //inside node
                     label[i][j] = max_inside(label[i-1][j], label[i][j+1], label[i+1][j], label[i][j-1]);
-                    *change = 1;
                 }
+            }
+
+            if(aux != label[i][j]){
+                *change = 1;
             }
         }
     }
@@ -316,13 +309,11 @@ int main(int argc, char const *argv[]){
         //initialize_matrix(matrix_size, image);
         random_initialize_matrix(matrix_size, image);
         assign_label(matrix_size, image, label);
+
         /*
-        printf("IMAGE MATRIXx\n");
-        print_matrix(matrix_size, image);
-        */
         printf("LABEL MATRIX\n");
-        print_matrix(matrix_size, label);
-        printf("\n");
+        print_matrix(matrix_size, matrix_size, label);
+        printf("\n");*/
     }
 
     int local_label[ROWS_PER_PROC][matrix_size];   
@@ -334,32 +325,12 @@ int main(int argc, char const *argv[]){
                 local_label, (matrix_size*ROWS_PER_PROC), MPI_INT, 
                 0, MPI_COMM_WORLD);
 
-    /*
-    if(rank == 0){
-        int i = 0, j = 0;
-        for(i = 0; i < ROWS_PER_PROC; i++){
-            for (j = 0; j < matrix_size; j++){
-                printf("PROCESO %d. Elemento[%d][%d] = %d\n", rank, i, j, local_label[i][j]);
-            }
-        }
-        printf("PROCESO %d. Cuenta total = %d\n\n", rank, i*10+j);
-    }
-    if(rank == 1){
-        int i = 0, j = 0;
-        for(i = 0; i < ROWS_PER_PROC; i++){
-            for (j = 0; j < matrix_size; j++){
-                printf("PROCESO %d. Elemento[%d][%d] = %d\n", rank, i, j, local_label[i][j]);
-            }
-        } 
-        printf("PROCESO %d. Cuenta total = %d\n\n", rank, i*10+j);
-    }*/
 
     int upper_bound[matrix_size], 
         lower_bound[matrix_size], 
         cont = 1,
         change = 0;
 
-    printf("PROCESO %d: hay %d procesos\n", rank, world_size);
 
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -381,12 +352,14 @@ int main(int argc, char const *argv[]){
             //receive lower row from upper neighbor
         }
 
+        //print_matrix()
+
         
         //update values
         if(rank == 0){
             update_upper_strip(ROWS_PER_PROC, matrix_size, local_label, lower_bound, &change);
         }
-        else if(rank == world_size){
+        else if(rank == (world_size - 1)){
             update_lower_strip(ROWS_PER_PROC, matrix_size, local_label, upper_bound, &change);
         }
         else{
@@ -413,7 +386,7 @@ int main(int argc, char const *argv[]){
         COORDINATOR_RANK, MPI_COMM_WORLD);
 
     if(rank = COORDINATOR_RANK){
-        print_matrix(matrix_size, label);
+        print_matrix(matrix_size, matrix_size, label);
     }
   
     MPI_Barrier(MPI_COMM_WORLD);
