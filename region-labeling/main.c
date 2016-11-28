@@ -2,10 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 
 #define ROWS_PER_PROC       3
 #define COORDINATOR_RANK    0
 #define COORDINATOR_TAG     80
+
+#define NUMBERS_PER_CELL    3
 
 /*m1 is the cloneable matrix, m2 is the resulting matrix*/
 /*
@@ -38,7 +41,34 @@ void initialize_matrix(int image[N][N]){
 
 }*/
 
+int digits(unsigned int num){
+/*Counts how many digits has a number*/
+    
+    int count = 1;
+    while(num/10>0)
+    {
+        num=num/10;
+        count++;
+    }
+    return count;
+}
 
+void print_number(int num, int cant_num){ 
+    int cant = digits(num);
+    if(cant < cant_num){
+        for(int i = 0; i < abs(cant_num - cant); i++){
+            printf("%d", 0);
+        }
+    }    
+    int val = num,
+        p;
+    for(int i = cant; i > 0; i--){
+        p = (int)pow(10, i-1);
+        printf("%d", val/p);
+        val = val % p;
+    }
+    printf(" ");
+}
 
 int isLit(int val){
     return val;
@@ -47,7 +77,7 @@ int isLit(int val){
 void print_matrix(int nrows, int ncols, int matrix[nrows][ncols]){
     for(int i = 0; i < nrows; i++){
         for(int j = 0; j < ncols; j++){
-            printf("%d ", matrix[i][j]);
+            print_number(matrix[i][j], NUMBERS_PER_CELL);
         }
         printf("\n");
     }
@@ -114,16 +144,11 @@ int coordinate(int chg, int size, int rank){
     //and broadcast to finish the execution if nobody made any changes
     for(int i = 0; i < size-1; i++){
         MPI_Recv(&change, 1, MPI_INT, MPI_ANY_SOURCE, COORDINATOR_TAG, MPI_COMM_WORLD, &status);
-        //printf("received a %d from process %d\n", change, status.MPI_SOURCE);
         acum += change;
     }
-    acum += chg;
-    //printf("COORDINATE WILL RETURN %d (change = %d. chg = %d)\n", acum, change, chg);
-    return acum;
 
-    /*
-    *cont = acum;
-    MPI_Bcast(&acum, 1, MPI_INT, rank, MPI_COMM_WORLD);*/
+    acum += chg;
+    return acum;
     
 }
 
@@ -169,7 +194,6 @@ int max_inside(int x, int y, int z, int w, int original){
 } 
 
 void update_upper_strip(int nrows, int ncols, int label[nrows][ncols], int lower_bound[ncols], int *change){
-    //print_row(ncols, lower_bound);
     int aux;
     for(int i = 0; i < nrows; i++){
         for(int j = 0; j < ncols; j++){
@@ -195,22 +219,13 @@ void update_upper_strip(int nrows, int ncols, int label[nrows][ncols], int lower
             //lower row
                 if(j == 0){
                     //lower left corner
-                    //printf("\nlower_bound[%d] = %d\n", j, lower_bound[j]);
-                    //printf("%d %d = %d %d %d %d\n", i, j, label[i-1][j], label[i][j+1], lower_bound[j], label[i][j]);
                     label[i][j] = max_edge(label[i-1][j], label[i][j+1], lower_bound[j], label[i][j]);
-                    //printf("label[%d][%d] = %d\n", i, j, label[i][j]);
                 }else if(j == (ncols-1)){
                     //lower right corner
-                    //printf("\nlower_bound[%d] = %d\n", j, lower_bound[j]);
-                    //printf("%d %d = %d %d %d %d\n", i, j, label[i-1][j], label[i][j-1], lower_bound[j], label[i][j]);
                     label[i][j] = max_edge(label[i-1][j], label[i][j-1], lower_bound[j], label[i][j]);
-                    //printf("label[%d][%d] = %d\n", i, j, label[i][j]);
                 }else{
                     //lower row, not corner
-                    //printf("\nlower_bound[%d] = %d\n", j, lower_bound[j]);
-                    //printf("%d %d = %d %d %d %d %d\n", i, j, label[i][j-1], label[i+1][j], label[i][j+1], lower_bound[j], label[i][j]);
-                    label[i][j] = max_inside(label[i][j-1], label[i-1][j], label[i][j+1], lower_bound[j], label[i][j]);
-                    //printf("label[%d][%d] = %d\n", i, j, label[i][j]);  
+                    label[i][j] = max_inside(label[i][j-1], label[i-1][j], label[i][j+1], lower_bound[j], label[i][j]); 
                 }
             }else{
             //inside row
@@ -438,34 +453,31 @@ int main(int argc, char const *argv[]){
         change = 0;
 
         if(rank != 0){
-            MPI_Send(strip[0], matrix_size, MPI_INT, rank-1, 0, MPI_COMM_WORLD);
             //send upper row of the strip to upper neighbor
+            MPI_Send(strip[0], matrix_size, MPI_INT, rank-1, 0, MPI_COMM_WORLD);
         }
         if(rank != (world_size-1)){
-            MPI_Send(strip[ROWS_PER_PROC-1], matrix_size, MPI_INT, rank+1, 0, MPI_COMM_WORLD);
             //send lower row of the strip to lower neighbor
+            MPI_Send(strip[ROWS_PER_PROC-1], matrix_size, MPI_INT, rank+1, 0, MPI_COMM_WORLD);
         }
         if(rank != (world_size-1)){
-            MPI_Recv(lower_bound, matrix_size, MPI_INT, rank+1, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             //receive upper row from lower neighbor
+            MPI_Recv(lower_bound, matrix_size, MPI_INT, rank+1, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
         if(rank != 0){
-            MPI_Recv(upper_bound, matrix_size, MPI_INT, rank-1, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             //receive lower row from upper neighbor
+            MPI_Recv(upper_bound, matrix_size, MPI_INT, rank-1, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
         
 
         //update values
         if(rank == 0){
-            printf("im gonna update upper strip\n");
             update_upper_strip(ROWS_PER_PROC, matrix_size, strip, lower_bound, &change);
         }
         else if(rank == (world_size - 1)){
-            printf("im gonna update lower strip\n");
             update_lower_strip(ROWS_PER_PROC, matrix_size, strip, upper_bound, &change);
         }
         else{
-            printf("im gonna update inside strip\n");
             update_inside_strip(ROWS_PER_PROC, matrix_size, strip, upper_bound, lower_bound, &change);
         }
 
@@ -476,8 +488,6 @@ int main(int argc, char const *argv[]){
 
         if(rank == COORDINATOR_RANK){
             cont = coordinate(change, world_size, rank);
-
-            //MPI_Bcast(&cont, 1, MPI_INT, rank, MPI_COMM_WORLD);
         }
 
 
@@ -486,11 +496,8 @@ int main(int argc, char const *argv[]){
 
     }
 
-    //printf("PROCESS %d: JUST GOT OUT OF THE WHILE LOOP YEYYYYYYYYYYYYYYYYYYYYYYaaaaaaaaaaaaaaa xD\n", rank);
     MPI_Barrier(MPI_COMM_WORLD);
     
-    //printf("PROCESS %d: JUST GOT OUT OF THE WHILE LOOP YEYYYYYYYYYYYYYYYYYYYYYYaaaaaaaaaaaaaaa xD\n", rank);
-
     
     //now we could rebuild the original matrix
     //and print it
