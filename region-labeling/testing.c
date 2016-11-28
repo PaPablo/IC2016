@@ -63,7 +63,19 @@ int main(int argc, char const *argv[])
         {4, 5, 6},
     };
 
-    print_matrix(N, m);
+    char c;
+
+    printf("PRESS A KEY TO CONTINUE...\n");
+    scanf("%c", &c);
+    for(int i = 0; i < N; i++){
+        for(int j = 0; j < N; j++){
+            if(m[i][j] == 3) continue;
+
+            printf("%d\n", m[i][j]);
+        }
+    }
+    /*
+    print_matrix(N, m);     
 
     
     printf("the greatest value between %d and %d is = %d\n\n", m[0][2], m[2][0],  max_corner(m[0][2], m[2][0]));
@@ -81,6 +93,47 @@ int main(int argc, char const *argv[])
     printf("the greatest value between %d, %d, and %d is = %d\n\n", m[2][0], m[1][1], m[0][2],  max_edge(m[0][2], m[2][0], m[1][1]));*/
 
     //do_something(N, m);
-    //print_matrix(N, m);    
+    //print_matrix(N, m);    */
     return 0;
 }
+
+
+
+
+
+
+/*
+
+        IMPRIMIR LOS STRIPS DE CADA PROCESO
+        CON LA FILA DEL VECINO/S QUE RECIBE CADA UNO
+
+        */
+        /*
+        if(rank == 0){
+            printf("PROCESS %d STRIP\n", rank);
+            print_matrix(ROWS_PER_PROC, matrix_size, local_label);
+            printf("PROCESS %d LOWER BOUND\n", rank);
+            print_row(matrix_size, lower_bound);
+        }
+
+        if(rank == 1){
+            printf("\n\nPROCESS %d UPPER BOUND\n", rank);
+            print_row(matrix_size, upper_bound);
+            printf("\n");
+            printf("PROCESS %d STRIP\n", rank);
+            print_matrix(ROWS_PER_PROC, matrix_size, local_label);
+            printf("\n");
+            printf("PROCESS %d LOWER BOUND\n", rank);
+            print_row(matrix_size, lower_bound);
+        }
+
+        if(rank == world_size-1){
+            printf("\n\nPROCESS %d UPPER BOUND\n", rank);
+            print_row(matrix_size, upper_bound);
+            printf("\n");
+            printf("PROCESS %d STRIP\n", rank);
+            print_matrix(ROWS_PER_PROC, matrix_size, local_label);
+            printf("\n");
+        }
+
+        finalize();*/
