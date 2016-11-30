@@ -1,45 +1,31 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <math.h>
 
-#define ROWS_PER_PROC       3
 #define COORDINATOR_RANK    0
 #define COORDINATOR_TAG     80
 
 #define NUMBERS_PER_CELL    3
 
-/*m1 is the cloneable matrix, m2 is the resulting matrix*/
-/*
-void clone_matrix(int size, int m1[size][size], int m2[size][size]){
-    for(int i = 0; i < size; i++){
-        for(int j = 0; j < size; j++){
-            m2[i][j] = m1[i][j];
-        }
+int sum(int max){
+    int acum = 0;
+    for(int i = 0; i <= max; i++){
+        acum += i;
     }
+    return acum;
 }
 
+int sum_array(int max, int array[max]){
+    int acum = 0;
+    for(int i = 0; i < max; i++){
+        acum += array[i];
+    }
 
-void initialize_matrix(int image[N][N]){
-
-    int mtx[N][N] =
-    {
-        {1, 0, 1, 0, 0, 0, 0, 0, 1, 1},
-        {0, 1, 1, 1, 1, 0, 0, 0, 1, 1},
-        {1, 1, 0, 1, 1, 1, 0, 1, 1, 1},
-        {1, 1, 1, 0, 1, 1, 0, 0, 0, 1},
-        {1, 1, 0, 1, 1, 1, 1, 0, 1, 0},
-        {0, 0, 0, 1, 0, 1, 0, 0, 0, 1},
-        {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-        {1, 1, 0, 0, 0, 0, 0, 0, 1, 1},
-        {1, 1, 1, 0, 0, 0, 0, 1, 1, 1},
-        {1, 1, 1, 1, 0, 0, 1, 1, 1, 1},
-    };
-
-    clone_matrix(mtx, image);
-
-}*/
+    return acum;
+}
 
 int digits(unsigned int num){
 /*Counts how many digits has a number*/
@@ -57,7 +43,8 @@ void print_number(int num, int cant_num){
     int cant = digits(num);
     if(cant < cant_num){
         for(int i = 0; i < abs(cant_num - cant); i++){
-            printf("%d", 0);
+            printf(" ");
+            //printf("0");
         }
     }    
     int val = num,
@@ -134,22 +121,19 @@ void assign_label(int size, int image[size][size], int label[size][size]){
 }
 
 
-int coordinate(int chg, int size, int rank){
-    
-    int change, 
-        acum = 0;
+int coordinate(int *flags, int rank, int world_size){
+    for(int i = 0; i < world_size; i++){
+        if(i == rank) continue;
 
-    MPI_Status status;
-    //Coordinator receives messagges from every process 
-    //and broadcast to finish the execution if nobody made any changes
-    for(int i = 0; i < size-1; i++){
-        MPI_Recv(&change, 1, MPI_INT, MPI_ANY_SOURCE, COORDINATOR_TAG, MPI_COMM_WORLD, &status);
-        acum += change;
+        MPI_Send(&flags[rank], 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+
+        MPI_Recv(&flags[i], 1, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+
     }
 
-    acum += chg;
-    return acum;
-    
+    return !(sum(world_size) == sum_array(world_size, flags));
+
 }
 
 int max(int x, int y){
@@ -358,7 +342,16 @@ void update_inside_strip(int nrows, int ncols, int label[nrows][ncols], int uppe
     }
 }
 
+
+
 int main(int argc, char const *argv[]){   
+
+    if ((argc < 2) || (atoi(argv[1]) < 2)) {
+        printf("USAGE: ./no_coordinator {rows per proc (has to be greater than 2)}\n");
+        exit(1);
+    }
+
+    int rows_per_proc = atoi(argv[1]);
 
     int world_size, rank;
 
@@ -366,7 +359,7 @@ int main(int argc, char const *argv[]){
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    int matrix_size = world_size * ROWS_PER_PROC;
+    int matrix_size = world_size * rows_per_proc;
     int image[matrix_size][matrix_size];
     int label[matrix_size][matrix_size];
 
@@ -380,77 +373,39 @@ int main(int argc, char const *argv[]){
         random_initialize_matrix(matrix_size, image);
         assign_label(matrix_size, image, label);
 
-        /*
-        printf("LABEL MATRIX\n");
-        print_matrix(matrix_size, matrix_size, label);
-        printf("\n");*/
     }
 
-    int strip[ROWS_PER_PROC][matrix_size];   
+    int strip[rows_per_proc][matrix_size];   
 
 
     //we assign a strip of the label matrix to every process
     //each strip has ROW_PER_PROC rows 
-    MPI_Scatter(label, (matrix_size*ROWS_PER_PROC), MPI_INT, 
-                strip, (matrix_size*ROWS_PER_PROC), MPI_INT, 
+    MPI_Scatter(label, (matrix_size*rows_per_proc), MPI_INT, 
+                strip, (matrix_size*rows_per_proc), MPI_INT, 
                 0, MPI_COMM_WORLD);
 
 
     int upper_bound[matrix_size], 
         lower_bound[matrix_size], 
         cont = 1,
-        change;
+        change,
+        rnk = rank;
 
+    if(rank == 0)
+        rnk = world_size;
+    //rnk will be between 1 and world_size
+    int flags[world_size];
+
+    init_array(world_size, flags, 0);
     init_array(matrix_size, upper_bound, 0);
     init_array(matrix_size, lower_bound, 0);  
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    /*
-    if(rank != 0){
-        MPI_Send(strip[0], matrix_size, MPI_INT, rank-1, 0, MPI_COMM_WORLD);
-        //send upper row of the strip to upper neighbor
-    }
-    if(rank != (world_size-1)){
-        MPI_Send(strip[ROWS_PER_PROC-1], matrix_size, MPI_INT, rank+1, 0, MPI_COMM_WORLD);
-        //send lower row of the strip to lower neighbor
-    }
-    if(rank != (world_size-1)){
-        MPI_Recv(lower_bound, matrix_size, MPI_INT, rank+1, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        //receive upper row from lower neighbor
-    }
-    if(rank != 0){
-        MPI_Recv(upper_bound, matrix_size, MPI_INT, rank-1, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        //receive lower row from upper neighbor
-    }
-
-
-    if(rank == 0){
-        printf("\nPROCESS %d STRIP:\n\n", rank);
-        print_matrix(ROWS_PER_PROC, matrix_size, strip);
-        printf("\nPROCESS %d LOWER BOUND:\n", rank);
-        print_row(matrix_size, lower_bound);
-    }else if (rank == (world_size - 1)){
-        printf("\nPROCESS %d UPPER BOUND:\n", rank);
-        print_row(matrix_size, upper_bound);
-        printf("\nPROCESS %d STRIP:\n\n", rank);
-        print_matrix(ROWS_PER_PROC, matrix_size, strip);   
-    }else{
-        printf("\n\nPROCESS %d UPPER BOUND:\n", rank);
-        print_row(matrix_size, upper_bound);
-        printf("\nPROCESS %d STRIP:\n", rank);
-        print_matrix(ROWS_PER_PROC, matrix_size, strip);
-        printf("\nPROCESS %d LOWER BOUND:\n\n", rank);
-        print_row(matrix_size, lower_bound);  
-    }*/
-
-    /*
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Finalize();
-    exit(0);*/
 
     while(cont){
         change = 0;
+        flags[rank] = 0;
 
         if(rank != 0){
             //send upper row of the strip to upper neighbor
@@ -458,7 +413,7 @@ int main(int argc, char const *argv[]){
         }
         if(rank != (world_size-1)){
             //send lower row of the strip to lower neighbor
-            MPI_Send(strip[ROWS_PER_PROC-1], matrix_size, MPI_INT, rank+1, 0, MPI_COMM_WORLD);
+            MPI_Send(strip[rows_per_proc-1], matrix_size, MPI_INT, rank+1, 0, MPI_COMM_WORLD);
         }
         if(rank != (world_size-1)){
             //receive upper row from lower neighbor
@@ -472,43 +427,42 @@ int main(int argc, char const *argv[]){
 
         //update values
         if(rank == 0){
-            update_upper_strip(ROWS_PER_PROC, matrix_size, strip, lower_bound, &change);
+            update_upper_strip(rows_per_proc, matrix_size, strip, lower_bound, &change);
         }
         else if(rank == (world_size - 1)){
-            update_lower_strip(ROWS_PER_PROC, matrix_size, strip, upper_bound, &change);
+            update_lower_strip(rows_per_proc, matrix_size, strip, upper_bound, &change);
         }
         else{
-            update_inside_strip(ROWS_PER_PROC, matrix_size, strip, upper_bound, lower_bound, &change);
-        }
-
-        if(rank != COORDINATOR_RANK){
-            //send to coordinator if something changed
-            MPI_Send(&change, 1, MPI_INT, COORDINATOR_RANK, COORDINATOR_TAG, MPI_COMM_WORLD);
-        }
-
-        if(rank == COORDINATOR_RANK){
-            cont = coordinate(change, world_size, rank);
+            update_inside_strip(rows_per_proc, matrix_size, strip, upper_bound, lower_bound, &change);
         }
 
 
-        //Broadcast continue flag 
-        MPI_Bcast(&cont, 1, MPI_INT, COORDINATOR_RANK, MPI_COMM_WORLD); 
+        if(!change)
+            flags[rank] = rnk;
+        
+            
+
+        cont = coordinate(flags, rank, world_size);
 
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
     
     
-    //now we could rebuild the original matrix
+    //now we rebuild the original matrix
     //and print it
 
     int new_label[matrix_size][matrix_size];
 
-    MPI_Gather(strip, (ROWS_PER_PROC*matrix_size), MPI_INT, 
-    new_label, (ROWS_PER_PROC*matrix_size), MPI_INT, 
+    MPI_Gather(strip, (rows_per_proc*matrix_size), MPI_INT, 
+    new_label, (rows_per_proc*matrix_size), MPI_INT, 
     COORDINATOR_RANK, MPI_COMM_WORLD);
+    
 
     if(rank == COORDINATOR_RANK){
+        printf("This version DOES NOT implement a coordinator\n");
+        printf("IMAGE MATRIX\n");
+        print_matrix(matrix_size, matrix_size, image);
         printf("\n\nORIGINAL LABEL MATRIX\n");
         print_matrix(matrix_size, matrix_size, label);
         printf("\n\n");
