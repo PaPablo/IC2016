@@ -123,17 +123,16 @@ void assign_label(int size, int image[size][size], int label[size][size]){
 
 int coordinate(int *flags, int rank, int world_size){
     for(int i = 0; i < world_size; i++){
+        //we do not send messages to ourself
         if(i == rank) continue;
 
         MPI_Send(&flags[rank], 1, MPI_INT, i, 0, MPI_COMM_WORLD);
 
-        MPI_Recv(&flags[i], 1, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-
-
+        MPI_Recv(&flags[i], 1, MPI_INT, i, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
-
+    /*returns a 0 if the summation between 1 and world_size equals to
+    the summation of the elements in the array flags*/
     return !(sum(world_size) == sum_array(world_size, flags));
-
 }
 
 int max(int x, int y){
@@ -466,6 +465,10 @@ int main(int argc, char const *argv[]){
         printf("\n\nORIGINAL LABEL MATRIX\n");
         print_matrix(matrix_size, matrix_size, label);
         printf("\n\n");
+        /*
+        char c;
+        scanf("%c", &c);*/
+        
         printf("BRAND NEW LABEL MATRIX\n");
         print_matrix(matrix_size, matrix_size, new_label);
     }

@@ -449,6 +449,10 @@ int main(int argc, char const *argv[]){
         printf("\n\nORIGINAL LABEL MATRIX\n");
         print_matrix(matrix_size, matrix_size, label);
         printf("\n\n");
+        /*
+        char c;
+        scanf("%c", &c);*/
+        
         printf("BRAND NEW LABEL MATRIX\n");
         print_matrix(matrix_size, matrix_size, new_label);
     }

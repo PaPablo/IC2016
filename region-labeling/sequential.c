@@ -14,6 +14,19 @@ void clone_matrix(int size, int m1[size][size], int m2[size][size]){
         }
     }
 }
+/*
+void initialize_matrix(int matrix_size, image[matrix_size][matrix_size]){
+    int aux[matrix_size][matrix_size] = {
+        {1,0,0,1,1,1,0,0},
+        {0,0,0,1,1,1,0,0},
+        {0,0,0,0,0,0,0,0},
+        {1,0,0,0,0,0,0,1},
+        {1,1,0,0,0,0,1,1},
+        {1,1,1,0,0,1,1,1},
+        {1,1,1,1,1,1,1,1},
+        {0,0,0,0,0,0,0,0},  
+    };
+}*/
 
 
 int digits(unsigned int num){
@@ -151,9 +164,9 @@ int max_inside(int x, int y, int z, int w, int original){
     return max_edge(y, z, w, original);
 }
 
-void update_values(int nrows, int ncols, int label[nrows][ncols], int *change){
+void update_values(int nrows, int ncols, int label[nrows][ncols], int *finish){
 
-    *change = 1;
+    *finish = 1;
     
     for(int i = 0; i < nrows; i++){
         for(int j = 0; j < ncols; j++){
@@ -200,14 +213,14 @@ void update_values(int nrows, int ncols, int label[nrows][ncols], int *change){
             }
 
             if(aux != label[i][j])
-                *change = 0;
+                *finish = 0;
         }
     }
 }
 int main(int argc, char const *argv[])
 {
     if ((argc < 2) || (atoi(argv[1]) < 2)) {
-        printf("USAGE: ./sequential {matrix matrix_size (has to be greater than 2)}\n");
+        printf("USAGE: ./sequential {matrix_size (has to be greater than 2)}\n");
         exit(1);
     }
 
@@ -219,10 +232,11 @@ int main(int argc, char const *argv[])
     init_matrix(matrix_size, image, 0);
     init_matrix(matrix_size, label, 0);
 
+    //initialize_matrix(matrix_size, image);
     random_initialize_matrix(matrix_size, image);
     assign_label(matrix_size, image, label);
     
-    int change = 0;
+    int finish = 0;
     
     int new_label[matrix_size][matrix_size];
 
@@ -231,8 +245,8 @@ int main(int argc, char const *argv[])
 
     
 
-    while(!change){
-        update_values(matrix_size, matrix_size, label, &change);
+    while(!finish){
+        update_values(matrix_size, matrix_size, label, &finish);
     }
 
     printf("SEQUENTIAL VERSION\n");
@@ -241,6 +255,10 @@ int main(int argc, char const *argv[])
     printf("\n\nORIGINAL LABEL MATRIX\n");
     print_matrix(matrix_size, matrix_size, new_label);
     printf("\n\n");
+    
+    char c;
+    scanf("%c", &c);
+    
     printf("BRAND NEW LABEL MATRIX\n");
     print_matrix(matrix_size, matrix_size, label);
 
